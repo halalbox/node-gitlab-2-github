@@ -77,10 +77,11 @@ const githubApi = new MyOctokit({
       const retryMessage = `Retrying after ${retryAfter} seconds @ ${moment().add(retryAfter, 'seconds').format('LLL')}!`;
       console.log(abuseMessage);
       console.log(retryMessage);
-      if (settings.slack.webhookUrl) {
-        const body = { text: abuseMessage + `\n` + retryMessage, };
-        axios.post(settings.slack.webhookUrl, body);
-      }
+      postSlackMsg(abuseMessage + `\n` + retryMessage);
+      // if (settings.slack.webhookUrl) {
+      //   const body = { text: abuseMessage + `\n` + retryMessage, };
+      //   axios.post(settings.slack.webhookUrl, body);
+      // }
       return true;
     },
     minimumAbuseRetryAfter: 1000,
@@ -219,6 +220,7 @@ async function migrate() {
     }
 
     if (settings.transfer.mergeRequests) {
+      postSlackMsg('Next, Start MR migration.');
       if (settings.mergeRequests.log) {
         await logMergeRequests(settings.mergeRequests.logFile);
       } else {
@@ -228,9 +230,11 @@ async function migrate() {
   } catch (err) {
     console.error('Error during transfer:');
     console.error(err);
+    postSlackMsg('Error during transfer');
   }
-
+  
   console.log('\n\nTransfer complete!\n\n');
+  postSlackMsg(`\n\nTransfer complete!\n\n`);
 }
 
 // ----------------------------------------------------------------------------
@@ -501,7 +505,7 @@ async function transferMergeRequests() {
     projectId: settings.gitlab.projectId,
     labels: settings.filterByLabel,
   });
-
+  postSlackMsg(`Got All Gitlab MRs(${mergeRequests?.length}). Starting MR migration now`);
   // Sort merge requests in ascending order of their number (by iid)
   mergeRequests = mergeRequests.sort((a, b) => a.iid - b.iid);
 
@@ -684,4 +688,16 @@ function inform(msg: string) {
   console.log('==================================');
   console.log(msg);
   console.log('==================================');
+}
+
+/**
+ * Sends message to a slack webhook or channel if slack webhook url is defined
+ */
+ function postSlackMsg(text: string) {
+  if (settings.slack.webhookUrl) {
+    const body = { text };
+    axios.post(settings.slack.webhookUrl, body);
+  } else {
+    console.log(text);
+  }
 }
