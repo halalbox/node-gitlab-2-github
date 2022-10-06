@@ -54,4 +54,7 @@ export default {
     logFile: './merge-requests.json',
     log: false,
   },
+  slack: {
+    webhookUrl: 'https://hooks.slack.com/SAMPLE/WEBHOOK/URL',
+  }
 } as Settings;

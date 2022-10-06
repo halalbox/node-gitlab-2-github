@@ -10,11 +10,13 @@ import settings from '../settings';
 import { Octokit as GitHubApi } from '@octokit/rest';
 import { throttling } from '@octokit/plugin-throttling';
 import { Gitlab } from '@gitbeaker/node';
+import moment, { Moment } from 'moment';
 
 import { default as readlineSync } from 'readline-sync';
 import * as fs from 'fs';
 
 import AWS from 'aws-sdk';
+import axios from 'axios';
 
 const counters = {
   nrOfPlaceholderIssues: 0,
@@ -65,17 +67,16 @@ const githubApi = new MyOctokit({
   throttle: {
     onRateLimit: async (retryAfter, options) => {
       console.log(
-        `Request quota exhausted for request ${options.method} ${options.url}`
+        `Request quota exhausted for request ${options.method} ${options.url} @ ${moment().format('LLL')}`
       );
-      console.log(`Retrying after ${retryAfter} seconds!`);
+      console.log(`Retrying after ${retryAfter} seconds @ ${moment().add(retryAfter, 'seconds').format('LLL')}!`);
       return true;
     },
     onAbuseLimit: async (retryAfter, options) => {
-      console.log(
-        `Abuse detected for request ${options.method} ${options.url}`
-      );
-      console.log(`Retrying after ${retryAfter} seconds!`);
-      return true;
+      const abuseMessage = `Abuse detected for request ${options.method} ${options.url} @ ${moment().format('LLL')}`;
+      const retryMessage = `Retrying after ${retryAfter} seconds @ ${moment().add(retryAfter, 'seconds').format('LLL')}!`;
+      console.log(abuseMessage);
+      console.log(retryMessage);
     },
     minimumAbuseRetryAfter: 1000,
   },

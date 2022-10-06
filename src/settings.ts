@@ -32,6 +32,9 @@ export default interface Settings {
     log: boolean;
   };
   s3?: S3Settings;
+  slack?: {
+    webhookUrl?: string;
+  }
 }
 
 export interface GithubSettings {
