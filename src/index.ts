@@ -77,6 +77,11 @@ const githubApi = new MyOctokit({
       const retryMessage = `Retrying after ${retryAfter} seconds @ ${moment().add(retryAfter, 'seconds').format('LLL')}!`;
       console.log(abuseMessage);
       console.log(retryMessage);
+      if (settings.slack.webhookUrl) {
+        const body = { text: abuseMessage + `\n` + retryMessage, };
+        axios.post(settings.slack.webhookUrl, body);
+      }
+      return true;
     },
     minimumAbuseRetryAfter: 1000,
   },
